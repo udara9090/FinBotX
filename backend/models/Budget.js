@@ -1,11 +1,12 @@
 const mongoose = require("mongoose");
 
-const BudgetSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // Refers to User model
-  category: { type: String, required: true }, // Budget category (e.g., "Food", "Transport")
-  amount: { type: Number, required: true }, // Budgeted amount
-  startDate: { type: Date, default: Date.now }, // Budget start date
-  endDate: { type: Date }, // Budget end date (optional)
+const budgetSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  category: { type: String, required: true }, // e.g., Food, Transport
+  limit: { type: Number, required: true }, // Budgeted amount
+  spent: { type: Number, default: 0 }, // Current spending in this category
+  startDate: { type: Date, required: true },
+  endDate: { type: Date, required: true },
 });
 
-module.exports = mongoose.model("Budget", BudgetSchema);
+module.exports = mongoose.model("Budget", budgetSchema);

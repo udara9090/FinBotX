@@ -1,21 +1,25 @@
 const Expense = require("../models/Expense");
 
-exports.addExpense = async (req, res) => {
+// Add a new expense
+const addExpense = async (req, res) => {
   try {
-    const { category, amount, description } = req.body;
-    const newExpense = new Expense({ userId: req.user.id, category, amount, description });
-    await newExpense.save();
-    res.status(201).json(newExpense);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    const { amount, category } = req.body;
+    const expense = await Expense.create({ userId: req.user.id, amount, category });
+    res.status(201).json(expense);
+  } catch (error) {
+    res.status(500).json({ error: "Error adding expense" });
   }
 };
 
-exports.getExpenses = async (req, res) => {
+// Get all expenses
+const getExpenses = async (req, res) => {
   try {
-    const expenses = await Expense.find({ userId: req.user.id }).sort({ date: -1 });
+    const expenses = await Expense.find({ userId: req.user.id });
     res.json(expenses);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    res.status(500).json({ error: "Error fetching expenses" });
   }
 };
+console.log("🔍 addExpense:", addExpense);
+console.log("🔍 getExpenses:", getExpenses);
+module.exports = { addExpense, getExpenses };

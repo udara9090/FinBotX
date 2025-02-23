@@ -1,21 +1,41 @@
-const { analyzeExpenses } = require("../services/aiService");
+const axios = require("axios");
+const Expense = require("../models/Expense");
+const Income = require("../models/Income");
 
-exports.getAIExpenseAnalysis = async (req, res) => {
+const getFinancialInsights = async (req, res) => {
   try {
-    const expenses = req.body.expenses;  // Get expenses from the request body
+    const expenses = await Expense.find({ userId: req.user.id });
+    const income = await Income.find({ userId: req.user.id });
 
-    // Check if expenses are provided
-    if (!expenses || expenses.length === 0) {
-      return res.status(400).json({ message: "No expenses data provided" });
-    }
+    const totalIncome = income.reduce((sum, i) => sum + i.amount, 0);
+    const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
 
-    // Call the analyzeExpenses function from the service to get AI-powered analysis
-    const analysis = await analyzeExpenses(expenses);
+    const prompt = `
+      Based on the user's total income ($${totalIncome}) and total expenses ($${totalExpenses}), 
+      provide financial insights including:
+      1. Smart saving tips.
+      2. Alternative expense suggestions.
+      3. Investment recommendations.
+    `;
 
-    // Send the analysis result as the response
-    res.json({ message: analysis });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
+    const response = await axios.post(
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateText",
+      {
+        prompt,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.GEMINI_API_KEY}`,
+        },
+      }
+    );
+
+    res.json(response.data);
+  } catch (error) {
+    console.error("AI Analysis Error:", error);
+    res.status(500).json({ error: "Failed to generate financial insights." });
   }
 };
+
+module.exports = { getFinancialInsights };

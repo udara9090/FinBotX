@@ -1,7 +1,9 @@
 const express = require("express");
-const { getAIExpenseAnalysis } = require("../controllers/aiController");
+const { getFinancialInsights } = require("../controllers/aiController");
+const { protect } = require("../middleware/authMiddleware");
+
 const router = express.Router();
 
-router.post("/analyze", getAIExpenseAnalysis);
+router.get("/insights", protect, getFinancialInsights);
 
 module.exports = router;

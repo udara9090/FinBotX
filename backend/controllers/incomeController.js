@@ -1,21 +1,16 @@
 const Income = require("../models/Income");
 
-exports.addIncome = async (req, res) => {
-  try {
-    const { source, amount, description } = req.body;
-    const newIncome = new Income({ userId: req.user.id, source, amount, description });
-    await newIncome.save();
-    res.status(201).json(newIncome);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+// Add Income
+const addIncome = async (req, res) => {
+  const { source, amount } = req.body;
+  const income = await Income.create({ userId: req.user.id, source, amount });
+  res.status(201).json(income);
 };
 
-exports.getIncome = async (req, res) => {
-  try {
-    const income = await Income.find({ userId: req.user.id }).sort({ date: -1 });
-    res.json(income);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+// Get Income
+const getIncome = async (req, res) => {
+  const income = await Income.find({ userId: req.user.id });
+  res.json(income);
 };
+
+module.exports = { addIncome, getIncome };

@@ -1,9 +1,10 @@
 const express = require("express");
 const { addIncome, getIncome } = require("../controllers/incomeController");
-const authMiddleware = require("../middleware/authMiddleware");
+const { protect } = require("../middleware/authMiddleware");
+
 const router = express.Router();
 
-router.post("/add", authMiddleware, addIncome);
-router.get("/", authMiddleware, getIncome);
+router.post("/", protect, addIncome);
+router.get("/", protect, getIncome);
 
 module.exports = router;
