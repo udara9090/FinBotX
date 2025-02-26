@@ -20,6 +20,5 @@ const getExpenses = async (req, res) => {
     res.status(500).json({ error: "Error fetching expenses" });
   }
 };
-console.log("🔍 addExpense:", addExpense);
-console.log("🔍 getExpenses:", getExpenses);
+
 module.exports = { addExpense, getExpenses };
