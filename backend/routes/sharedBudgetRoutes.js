@@ -1,7 +1,7 @@
 
 
 const express = require("express");
-const { createSharedBudget, updateSharedBudget } = require("../controllers/sharedBudgetController");
+const { createSharedBudget, updateSharedBudget,getSharedBudgets } = require("../controllers/sharedBudgetController");
 
 const { protect } = require("../middleware/authMiddleware");
 

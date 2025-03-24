@@ -1,20 +1,11 @@
-import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { User, Menu, X, LogOut, ChevronDown } from 'lucide-react';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { FaBars, FaTimes, FaBell, FaUserCircle, FaSearch } from "react-icons/fa"; // Add FaSearch here
+import DynamicIsland from "./DynamicIsland"; // Import DynamicIsland component
 
-const Navbar = () => {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const location = useLocation();
+const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
   const navigate = useNavigate();
-
-  const isActive = (path) => 
-    location.pathname === path ? 'text-[#4FB846] after:w-full' : 'after:w-0';
-
-  const navLinks = [
-    { path: '/', label: 'Dashboard' },
-    { path: '/interns', label: 'Intern Page' },
-  ];
+  const [searchExpanded, setSearchExpanded] = useState(false);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -22,85 +13,107 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-[#00102F]/95 text-white fixed top-0 right-0 w-[calc(100%-256px)] py-6 ml-64 z-40 border-b border-white/5">
-      <div className="max-w-full px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Mobile menu button */}
-          <div className="flex md:hidden">
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="text-gray-300 hover:text-[#4FB846] transition-all duration-300 hover:rotate-180"
-            >
-              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-          </div>
-
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex md:items-center md:space-x-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
-                className={`text-gray-300 hover:text-[#4FB846] transition-all duration-200 py-2 relative
-                          after:content-[''] after:absolute after:bottom-0 after:left-0 after:h-0.5 
-                          after:bg-[#4FB846] after:transition-all after:duration-300 hover:after:w-full
-                          ${isActive(link.path)}`}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </div>
-
-          {/* User Menu */}
-          <div className="relative">
-            <button
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center space-x-3 text-gray-300 hover:text-[#4FB846] transition-all duration-200 group"
-            >
-              <div className="w-9 h-9 rounded-full bg-[#001845] flex items-center justify-center shadow-lg shadow-[#4FB846]/5 group-hover:shadow-[#4FB846]/20 transition-all duration-300">
-                <User className="h-5 w-5" />
+    <header className="backdrop-blur-xl bg-white/70 border-b border-cyan-200/40 sticky top-0 z-30 w-full transition-all duration-300">
+      <div className="absolute inset-0 bg-gradient-to-br from-cyan-50 via-blue-50 to-teal-50 z-0"></div>
+      <div className="relative z-10">
+        <div className="flex justify-between items-center h-16 px-4 sm:px-6">
+          {/* Left: Logo & Title */}
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 relative">
+              <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-cyan-400 to-teal-400 opacity-20"></div>
+              <div className="absolute inset-0 rounded-full border-2 border-cyan-400/30 flex items-center justify-center">
+                <div className="text-cyan-700 text-xs font-semibold">FB</div>
               </div>
-              <span className="hidden md:block font-medium">User</span>
-              <ChevronDown className={`h-4 w-4 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+            </div>
+            <h1 className="text-lg font-light text-gray-800 truncate">
+              FinBotX Dashboard
+            </h1>
+          </div>
+
+          {/* Center: Dynamic Island properly centered in the navbar */}
+          <div className="hidden sm:block">
+            <DynamicIsland />
+          </div>
+
+          {/* Right: Controls */}
+          <div className="flex items-center space-x-1 sm:space-x-4">
+            {/* Sidebar toggle (mobile) */}
+            <button 
+              className="p-2 rounded-xl sm:hidden"
+              onClick={toggleSidebar}
+              aria-label="Toggle sidebar"
+            >
+              {isSidebarOpen ? (
+                <FaTimes className="text-gray-600" />
+              ) : (
+                <FaBars className="text-gray-600" />
+              )}
             </button>
 
-            {/* Dropdown Menu */}
+            {/* Search */}
             <div
-              className={`absolute right-0 mt-2 w-48 bg-[#001845] rounded-lg shadow-xl shadow-black/20 py-1 
-                         transition-all duration-300 border border-white/5
-                         ${isDropdownOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none'}`}
+              className={`relative transition-all duration-300 ${
+                searchExpanded
+                  ? "absolute left-0 top-0 w-full h-16 flex items-center bg-white/90 px-4 z-50"
+                  : "hidden sm:block"
+              }`}
             >
-              <button
-                onClick={handleLogout}
-                className="flex items-center w-full px-4 py-3 text-gray-300 hover:bg-[#002466] hover:text-[#4FB846] transition-all duration-200 group"
-              >
-                <LogOut className="h-4 w-4 mr-3 transition-transform duration-200 group-hover:translate-x-1" />
-                <span className="font-medium">Logout</span>
-              </button>
+              <input
+                type="text"
+                placeholder="Search..."
+                className="py-2 pl-9 pr-3 w-full sm:w-36 md:w-48 lg:w-64 rounded-xl bg-white/80 border border-cyan-200/40 focus:border-cyan-400/60 focus:outline-none text-sm text-gray-700"
+              />
+              <FaSearch className="absolute left-3 top-3 text-gray-400 text-sm" />
+              {searchExpanded && (
+                <button
+                  className="absolute right-4 text-gray-500"
+                  onClick={() => setSearchExpanded(false)}
+                >
+                  <FaTimes size={18} />
+                </button>
+              )}
             </div>
-          </div>
-        </div>
 
-        {/* Mobile Menu */}
-        <div
-          className={`md:hidden transition-all duration-300 ease-in-out overflow-hidden border-t border-white/5
-                     ${isMobileMenuOpen ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'}`}
-        >
-          <div className="px-2 py-3 space-y-2">
-            {navLinks.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
-                className={`block px-4 py-2 text-gray-300 hover:text-[#4FB846] transition-all duration-200 rounded-lg
-                          hover:bg-[#002466] ${isActive(link.path)}`}
-              >
-                {link.label}
-              </Link>
-            ))}
+            {/* Search toggle for mobile */}
+            <button
+              className="p-2 rounded-xl hover:bg-white/80 sm:hidden"
+              onClick={() => setSearchExpanded(true)}
+              aria-label="Open search"
+            >
+              <FaSearch className="text-gray-600" size={16} />
+            </button>
+
+            {/* Notifications */}
+            <button
+              className="p-2 rounded-xl hover:bg-white/80 relative text-gray-600 hidden sm:block"
+              onClick={() => console.log("Notifications clicked")}
+            >
+              <FaBell size={18} />
+              <span className="absolute -top-1 -right-1 bg-gradient-to-tr from-cyan-400 to-teal-400 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                2
+              </span>
+            </button>
+
+            {/* User Profile */}
+            <div className="flex items-center space-x-2">
+              <FaUserCircle className="text-cyan-600 text-xl" />
+              <span className="text-sm font-medium text-gray-700 hidden sm:inline">
+                Samantha K.
+              </span>
+            </div>
+
+            {/* Logout */}
+            <button
+              onClick={handleLogout}
+              className="px-2 sm:px-3 py-2 bg-white/80 text-gray-700 rounded-xl border border-cyan-200/40 text-sm font-medium hover:bg-white hover:border-cyan-300/60 transition shadow-sm whitespace-nowrap"
+            >
+              <span className="hidden xs:inline">Logout</span>
+              <span className="xs:hidden">Exit</span>
+            </button>
           </div>
         </div>
       </div>
-    </nav>
+    </header>
   );
 };
 

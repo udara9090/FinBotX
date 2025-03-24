@@ -27,7 +27,7 @@ app.use("/api/users", require("./routes/userRoutes"));
 app.use("/api/expenses", require("./routes/expenseRoutes"));
 app.use("/api/income", require("./routes/incomeRoutes"));
 app.use("/api/ai", require("./routes/aiRoutes"));
-// app.use("/api/shared-budget", require("./routes/sharedBudgetRoutes"));
+app.use("/api/shared-budget", require("./routes/sharedBudgetRoutes"));
 
 // WebSockets Connection
 io.on("connection", (socket) => {
