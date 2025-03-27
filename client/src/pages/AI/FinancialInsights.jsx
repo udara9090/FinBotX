@@ -11,8 +11,10 @@ import {
   PaperAirplaneIcon,
   CogIcon,
   UserCircleIcon,
-  
-  RefreshIcon
+  RefreshIcon,
+  ChartBarIcon,
+  LightBulbIcon,
+  CalendarIcon
 } from "@heroicons/react/outline";
 
 const FinancialInsights = () => {
@@ -153,23 +155,31 @@ const FinancialInsights = () => {
                       title: "Smart Saving Strategies",
                       content: insights.smartSavingTips,
                       icon: <CreditCardIcon className="w-8 h-8 text-emerald-500" />,
+                      gradient: "from-emerald-500 to-green-400"
                     },
                     {
                       title: "Expense Optimization",
                       content: insights.alternativeExpenses,
-                      icon: <TrendingUpIcon className="w-8 h-8 text-teal-500" />,
+                      icon: <ChartBarIcon className="w-8 h-8 text-teal-500" />,
+                      gradient: "from-teal-500 to-blue-400"
                     },
                     {
                       title: "Investment Guidance",
                       content: insights.investmentRecommendations,
-                      icon: <SparklesIcon className="w-8 h-8 text-blue-500" />,
+                      icon: <LightBulbIcon className="w-8 h-8 text-blue-500" />,
+                      gradient: "from-blue-500 to-indigo-400"
                     },
                   ].map((insight, index) => (
-                    <div key={index} className="flex items-start space-x-4 bg-slate-50 p-4 rounded-xl">
-                      {insight.icon}
+                    <div 
+                      key={index} 
+                      className="flex items-start space-x-4 bg-slate-50 p-4 rounded-xl hover:scale-[1.02] transition-transform"
+                    >
+                      <div className="bg-white/20 p-2 rounded-lg">
+                        {insight.icon}
+                      </div>
                       <div>
                         <h3 className="font-semibold text-slate-800 mb-2">{insight.title}</h3>
-                        <p className="text-slate-600 text-sm">
+                        <p className="text-sm text-slate-600">
                           {insight.content || "Comprehensive analysis pending."}
                         </p>
                       </div>
@@ -211,6 +221,7 @@ const FinancialInsights = () => {
               <div className="h-[400px] overflow-y-auto bg-slate-50 rounded-xl p-4 space-y-4">
                 {generalChatHistory.length === 0 ? (
                   <div className="text-center text-slate-500 py-12">
+                    <CalendarIcon className="mx-auto w-16 h-16 text-blue-300 opacity-50 mb-4" />
                     <p>Start a conversation about your financial questions</p>
                     <p className="text-sm mt-2">Ask anything about budgeting, investments, or financial planning</p>
                   </div>

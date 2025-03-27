@@ -103,9 +103,9 @@ const SharedBudget = () => {
 
   // Format currency
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-IN', {
+    return new Intl.NumberFormat('en-LK', {
       style: 'currency',
-      currency: 'INR',
+      currency: 'LKR',
       maximumFractionDigits: 0
     }).format(amount);
   };
