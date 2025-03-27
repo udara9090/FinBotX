@@ -1,124 +1,176 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { api, getAuthHeaders } from "../../utils/api";
 import Navbar from "../../components/Navbar";
 import Sidebar from "../../components/Sidebar";
 import toast from "react-hot-toast";
-import { ChartBarIcon, QuestionMarkCircleIcon, LightBulbIcon, CurrencyDollarIcon } from "@heroicons/react/outline";
-
+import {
+  TrendingUpIcon,
+  SparklesIcon,
+  QuestionMarkCircleIcon,
+  CreditCardIcon,
+  PaperAirplaneIcon,
+  CogIcon,
+  UserCircleIcon,
+  
+  RefreshIcon
+} from "@heroicons/react/outline";
 
 const FinancialInsights = () => {
+  // State for AI Insights section
   const [insights, setInsights] = useState(null);
-  const [query, setQuery] = useState("");
-  const [queryResponse, setQueryResponse] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [queryLoading, setQueryLoading] = useState(false);
 
+  // State for Financial Advisory Chat
+  const [generalQuery, setGeneralQuery] = useState("");
+  const [generalChatHistory, setGeneralChatHistory] = useState([]);
+  const [generalQueryLoading, setGeneralQueryLoading] = useState(false);
+
+  // Fetch financial insights on component mount
   useEffect(() => {
     fetchFinancialInsights();
   }, []);
 
+  // Fetch Financial Insights
   const fetchFinancialInsights = async () => {
     setLoading(true);
+    setError("");
     try {
       const response = await api.get("/ai/insights", getAuthHeaders());
       setInsights(response.data);
     } catch (err) {
-      setError("Failed to fetch financial insights.");
-      toast.error("Error fetching financial insights.");
+      setError("Unable to retrieve financial insights at the moment.");
+      toast.error("Error fetching insights");
+      console.error("Insights fetch error:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleQueryChange = (e) => {
-    setQuery(e.target.value);
-  };
-
-  const handleQuerySubmit = async (e) => {
+  // Handle General Query Submission
+  const handleGeneralQuerySubmit = async (e) => {
     e.preventDefault();
-    setQueryLoading(true);
+    if (!generalQuery.trim()) return;
+
+    const newUserMessage = { 
+      type: "user", 
+      message: generalQuery,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+
+    setGeneralQueryLoading(true);
+    setError("");
     try {
       const response = await api.post(
-        "/ai/query",
-        { query },
+        "/ai/general",
+        { query: generalQuery },
         getAuthHeaders()
       );
-      setQueryResponse(response.data);
+
+      const botResponse = {
+        type: "bot",
+        message: response.data.message || 'No detailed response available.',
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+
+      setGeneralChatHistory((prevHistory) => [
+        ...prevHistory,
+        newUserMessage,
+        botResponse
+      ]);
+
+      setGeneralQuery("");
     } catch (err) {
-      setError("Failed to fetch query response.");
-      toast.error("Error processing your query.");
+      setError("Failed to process your financial question.");
+      toast.error("Query processing error");
+      console.error("General query error:", err);
+
+      // Add error message to chat history
+      setGeneralChatHistory((prevHistory) => [
+        ...prevHistory,
+        newUserMessage,
+        { 
+          type: "system", 
+          message: "Oops! I couldn't process your request. Please try again.",
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }
+      ]);
     } finally {
-      setQueryLoading(false);
+      setGeneralQueryLoading(false);
     }
   };
 
+  // Reset Chat History
+  const handleResetChat = () => {
+    setGeneralChatHistory([]);
+  };
+
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <Sidebar />
-
-      <div className="flex-1 ml-64 bg-white shadow-sm">
+      
+      <div className="ml-64 min-h-screen">
         <Navbar />
-
-        <div className="p-8 max-w-6xl mx-auto">
+        
+        <div className="container mx-auto px-6 py-8">
           {/* Header */}
-          <header className="mb-10 flex items-center justify-between">
+          <header className="mb-12 flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-extrabold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
+              <h1 className="text-5xl font-bold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
                 Financial Insights
               </h1>
-              <p className="text-slate-500 mt-3 text-lg">
+              <p className="text-slate-600 mt-3 text-xl font-medium">
                 Your intelligent financial companion
               </p>
             </div>
             <div className="flex space-x-4">
-              <CurrencyDollarIcon className="w-12 h-12 text-emerald-500 opacity-70" />
-              <ChartBarIcon className="w-12 h-12 text-teal-500 opacity-70" />
+              <TrendingUpIcon className="w-16 h-16 text-emerald-500 opacity-30" />
+              <CreditCardIcon className="w-16 h-16 text-teal-500 opacity-30" />
             </div>
           </header>
 
-          {/* Insights Section */}
-          <div className="grid md:grid-cols-2 gap-6">
+          {/* Main Content Grid */}
+          <div className="grid md:grid-cols-2 gap-8">
             {/* AI Insights Card */}
-            <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-6 transform transition-all hover:scale-[1.02]">
-              <div className="flex items-center mb-4">
-                <LightBulbIcon className="w-8 h-8 text-emerald-500 mr-3" />
-                <h2 className="text-xl font-semibold text-slate-800">
+            <div className="bg-white rounded-3xl shadow-xl border border-slate-100 p-8 hover:shadow-2xl transition-all duration-300">
+              <div className="flex items-center mb-6">
+                <SparklesIcon className="w-10 h-10 text-emerald-500 mr-4" />
+                <h2 className="text-2xl font-bold text-slate-800">
                   AI Financial Insights
                 </h2>
               </div>
 
               {loading ? (
                 <div className="text-center text-slate-500 animate-pulse">
-                  Generating insights...
+                  Generating intelligent insights...
                 </div>
               ) : error ? (
-                <div className="text-red-500">{error}</div>
+                <div className="text-red-500 text-center">{error}</div>
               ) : insights ? (
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {[
-                    { 
-                      title: "Smart Saving Tips", 
-                      content: insights.smartSavingTips, 
-                      icon: <CurrencyDollarIcon className="w-6 h-6 text-emerald-500" /> 
+                    {
+                      title: "Smart Saving Strategies",
+                      content: insights.smartSavingTips,
+                      icon: <CreditCardIcon className="w-8 h-8 text-emerald-500" />,
                     },
-                    { 
-                      title: "Alternative Expenses", 
-                      content: insights.alternativeExpenses, 
-                      icon: <ChartBarIcon className="w-6 h-6 text-teal-500" /> 
+                    {
+                      title: "Expense Optimization",
+                      content: insights.alternativeExpenses,
+                      icon: <TrendingUpIcon className="w-8 h-8 text-teal-500" />,
                     },
-                    { 
-                      title: "Investment Recommendations", 
-                      content: insights.investmentRecommendations, 
-                      icon: <LightBulbIcon className="w-6 h-6 text-blue-500" /> 
-                    }
+                    {
+                      title: "Investment Guidance",
+                      content: insights.investmentRecommendations,
+                      icon: <SparklesIcon className="w-8 h-8 text-blue-500" />,
+                    },
                   ].map((insight, index) => (
-                    <div key={index} className="flex items-start space-x-3">
+                    <div key={index} className="flex items-start space-x-4 bg-slate-50 p-4 rounded-xl">
                       {insight.icon}
                       <div>
-                        <h3 className="font-medium text-slate-700">{insight.title}</h3>
-                        <p className="text-slate-500 text-sm">
-                          {insight.content || "No insights available"}
+                        <h3 className="font-semibold text-slate-800 mb-2">{insight.title}</h3>
+                        <p className="text-slate-600 text-sm">
+                          {insight.content || "Comprehensive analysis pending."}
                         </p>
                       </div>
                     </div>
@@ -126,50 +178,106 @@ const FinancialInsights = () => {
                 </div>
               ) : (
                 <div className="text-center text-slate-500">
-                  No insights available
+                  No insights currently available
                 </div>
               )}
             </div>
 
-            {/* Conversational Query Card */}
-            <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-6 transform transition-all hover:scale-[1.02]">
-              <div className="flex items-center mb-4">
-                <QuestionMarkCircleIcon className="w-8 h-8 text-blue-500 mr-3" />
-                <h2 className="text-xl font-semibold text-slate-800">
-                  Ask a Financial Question
-                </h2>
+            {/* Financial Advisory Chat Card */}
+            <div className="bg-white rounded-3xl shadow-xl border border-slate-100 p-6 space-y-6 relative">
+              {/* Chat Header */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-4">
+                  <QuestionMarkCircleIcon className="w-10 h-10 text-blue-500" />
+                  <div>
+                    <h2 className="text-2xl font-bold text-slate-800">
+                      Financial Advisory
+                    </h2>
+                    <p className="text-sm text-slate-500">
+                      Your intelligent financial companion
+                    </p>
+                  </div>
+                </div>
+                <button 
+                  onClick={handleResetChat}
+                  className="text-slate-500 hover:text-blue-600 transition-colors"
+                  title="Clear Conversation"
+                >
+                  <RefreshIcon className="w-6 h-6" />
+                </button>
               </div>
 
-              <form onSubmit={handleQuerySubmit} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Your Financial Query
-                  </label>
-                  <input
-                    type="text"
-                    value={query}
-                    onChange={handleQueryChange}
-                    className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    placeholder="e.g., How much did I spend on coffee last month?"
-                  />
-                </div>
+              {/* Chat Messages Container */}
+              <div className="h-[400px] overflow-y-auto bg-slate-50 rounded-xl p-4 space-y-4">
+                {generalChatHistory.length === 0 ? (
+                  <div className="text-center text-slate-500 py-12">
+                    <p>Start a conversation about your financial questions</p>
+                    <p className="text-sm mt-2">Ask anything about budgeting, investments, or financial planning</p>
+                  </div>
+                ) : (
+                  generalChatHistory.map((msg, index) => (
+                    <div 
+                      key={index} 
+                      className={`flex items-start space-x-3 ${
+                        msg.type === 'user' 
+                          ? 'flex-row-reverse space-x-reverse' 
+                          : 'flex-row'
+                      }`}
+                    >
+                      <div className="flex-shrink-0">
+                        {msg.type === 'user' ? (
+                          <UserCircleIcon className="w-8 h-8 text-blue-500" />
+                        ) : msg.type === 'bot' ? (
+                          <CogIcon className="w-8 h-8 text-teal-500" />
+                        ) : (
+                          <SparklesIcon className="w-8 h-8 text-red-500" />
+                        )}
+                      </div>
+                      <div 
+                        className={`p-3 rounded-xl max-w-[70%] ${
+                          msg.type === 'user' 
+                            ? 'bg-blue-100 text-slate-800' 
+                            : msg.type === 'bot'
+                            ? 'bg-teal-50 text-slate-800'
+                            : 'bg-red-50 text-slate-800'
+                        }`}
+                      >
+                        <p className="text-sm">{msg.message}</p>
+                        <p className="text-xs text-slate-500 mt-1 text-right">
+                          {msg.timestamp}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
 
-                <button
-                  type="submit"
-                  disabled={queryLoading}
-                  className="w-full bg-gradient-to-r from-blue-500 to-teal-500 text-white px-6 py-3 rounded-lg 
-                  hover:from-blue-600 hover:to-teal-600 transition-all 
-                  focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 
-                  shadow-md hover:shadow-lg disabled:opacity-50"
+              {/* Query Input */}
+              <form onSubmit={handleGeneralQuerySubmit} className="relative">
+                <input
+                  type="text"
+                  value={generalQuery}
+                  onChange={(e) => setGeneralQuery(e.target.value)}
+                  className="w-full px-4 py-3 pr-12 rounded-xl border border-slate-200 
+                  focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
+                  transition-colors placeholder-slate-400"
+                  placeholder="Ask your financial question..."
+                />
+                <button 
+                  type="submit" 
+                  disabled={generalQueryLoading}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 
+                  text-blue-500 hover:text-blue-600 
+                  disabled:text-slate-400 transition-colors"
                 >
-                  {queryLoading ? "Processing..." : "Get AI Insights"}
+                  <PaperAirplaneIcon className="w-6 h-6" />
                 </button>
               </form>
 
-              {queryResponse && (
-                <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                  <h3 className="font-medium text-slate-700 mb-2">AI Response</h3>
-                  <p className="text-slate-600">{queryResponse}</p>
+              {/* Error Handling */}
+              {error && (
+                <div className="mt-4 p-4 bg-red-50 rounded-xl border border-red-200">
+                  <p className="text-red-600 text-sm">{error}</p>
                 </div>
               )}
             </div>

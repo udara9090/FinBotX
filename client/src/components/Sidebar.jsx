@@ -59,7 +59,7 @@ const Sidebar = ({ isSidebarOpen }) => {
         {[
           { to: "/expenses", icon: <FaMoneyBillWave />, label: "Expenses" },
           { to: "/income", icon: <FaWallet />, label: "Income" },
-          { to: "/budget", icon: <FaChartPie />, label: "Budget" },
+          { to: "/financial-insights", icon: <FaChartPie />, label: "Budget" },
           { to: "/shared-finance", icon: <FaUsers />, label: "Shared Finance" },
         ].map(({ to, icon, label }) => (
           <Link
