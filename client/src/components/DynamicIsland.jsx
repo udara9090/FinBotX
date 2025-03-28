@@ -28,7 +28,7 @@ const DynamicIsland = () => {
       const command = transcript.toLowerCase();
       if (command.includes("expenses")) navigate("/expenses");
       if (command.includes("income")) navigate("/income");
-      if (command.includes("budget")) navigate("/budget");
+      if (command.includes("budget")) navigate("/financial-insights");
     }
   }, [transcript, navigate]);
 
