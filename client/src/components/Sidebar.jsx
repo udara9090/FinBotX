@@ -57,9 +57,10 @@ const Sidebar = ({ isSidebarOpen }) => {
       {/* Navigation */}
       <nav className="relative mt-6 flex flex-col space-y-1 px-2 z-10">
         {[
+          { to: "/financial-insights", icon: <FaChartPie />, label: "Finance AI" },
+          { to: "/financial-insights", icon: <FaChartPie />, label: "Finance AI" },
           { to: "/expenses", icon: <FaMoneyBillWave />, label: "Expenses" },
           { to: "/income", icon: <FaWallet />, label: "Income" },
-          { to: "/financial-insights", icon: <FaChartPie />, label: "Budget" },
           { to: "/shared-finance", icon: <FaUsers />, label: "Shared Finance" },
         ].map(({ to, icon, label }) => (
           <Link
