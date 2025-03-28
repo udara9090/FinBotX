@@ -129,10 +129,14 @@ const SharedBudget = () => {
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      <Sidebar />
+    
+    <div className="fixed top-0 left-0 right-0 h-16 z-30 bg-white bg-opacity-90 backdrop-blur-lg border-b border-gray-200 shadow-sm">
+      <Navbar />
+    </div>
 
-      <div className="flex-1 ml-56">
-        <Navbar />
+    <div className="pt-16 flex flex-1">
+      {/* Sidebar */}
+      <Sidebar />
 
         <div className="p-6 max-w-6xl mx-auto">
           <header className="mb-8">

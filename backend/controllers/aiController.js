@@ -1,6 +1,7 @@
 const axios = require("axios");
 const Expense = require("../models/Expense");
 const Income = require("../models/Income");
+const mongoose = require('mongoose');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 
@@ -172,4 +173,82 @@ const handleGeneralFinanceQuery = async (req, res) => {
 };
 
 
-module.exports = { handleUserQuery, getFinancialInsights,handleGeneralFinanceQuery };
+const getSpendingHeatMap = async (req, res) => {
+  try {
+    console.log("Fetching heatmap for userId:", req.user.id); // Check if userId is correct
+
+    // Convert userId to ObjectId using `new` keyword
+    const userId = new mongoose.Types.ObjectId(req.user.id);
+
+    const expenses = await Expense.aggregate([
+      { $match: { userId: userId } }, 
+      { $group: { _id: "$category", totalSpent: { $sum: "$amount" } } }, 
+      { $sort: { totalSpent: -1 } }
+    ]);
+    res.json(expenses);
+  } catch (error) {
+    console.error("Error fetching heatmap data:", error);
+    res.status(500).json({ error: "Error fetching heatmap data", details: error.message });
+  }
+};
+
+const debtSimulationWithIncomeExpenses = async (req, res) => {
+  const { debtAmount, interestRate } = req.body;
+
+  // Fetch user's income and expenses (in LKR)
+  const income = await Income.find({ userId: req.user.id });
+  const expenses = await Expense.find({ userId: req.user.id });
+
+  // Calculate total income in LKR
+  const totalIncome = income.reduce((sum, i) => sum + i.amount, 0);
+
+  // Calculate total expenses in LKR
+  const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+
+  // Calculate available monthly payment in LKR
+  const availablePayment = totalIncome - totalExpenses;
+
+  if (availablePayment <= 0) {
+    return res.status(400).json({
+      error: "Your income is not sufficient to cover your expenses. Consider reducing expenses.",
+    });
+  }
+
+  // Now, let's calculate how long it would take to pay off the debt
+  const monthsToPayOff = calculateDebtPayoff(debtAmount, interestRate, availablePayment);
+  const totalInterest = calculateDebtInterest(debtAmount, interestRate, monthsToPayOff, availablePayment);
+
+  // Send result in LKR
+  res.json({ months: monthsToPayOff, totalInterest, availablePayment });
+};
+
+const calculateDebtPayoff = (debtAmount, interestRate, monthlyPayment) => {
+  const monthlyInterest = (interestRate / 100) / 12;
+  let balance = debtAmount;
+  let months = 0;
+
+  while (balance > 0) {
+    const interest = balance * monthlyInterest;
+    balance += interest - monthlyPayment;
+    months++;
+  }
+  return months;
+};
+
+const calculateDebtInterest = (debtAmount, interestRate, months, monthlyPayment) => {
+  const monthlyInterest = (interestRate / 100) / 12;
+  let totalInterest = 0;
+  let balance = debtAmount;
+
+  for (let i = 0; i < months; i++) {
+    const interest = balance * monthlyInterest;
+    totalInterest += interest;
+    balance += interest - monthlyPayment; // Use the passed monthly payment here
+  }
+  return totalInterest;
+};
+
+
+
+
+module.exports = { handleUserQuery, getFinancialInsights,handleGeneralFinanceQuery,getSpendingHeatMap, debtSimulationWithIncomeExpenses };
