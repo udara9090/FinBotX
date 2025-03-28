@@ -10,7 +10,11 @@ const Expenses = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [totalExpenses, setTotalExpenses] = useState(0);
+
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  const [editingExpense, setEditingExpense] = useState(null);
+
 
   useEffect(() => {
     fetchExpenses();
@@ -34,6 +38,21 @@ const Expenses = () => {
     }
   };
 
+  const handleDelete = async (id) => {
+    try {
+      await api.delete(`/expenses/${id}`, getAuthHeaders());
+      setExpensesList(prev => prev.filter(item => item._id !== id));
+      toast.success("Expense deleted successfully!");
+    } catch (err) {
+      toast.error("Failed to delete expense.");
+    }
+  };
+
+  const handleEdit = (item) => {
+    setFormData({ category: item.category, amount: item.amount });
+    setEditingExpense(item);
+  };
+
   const handleChange = (e) => {
     setFormData((prev) => ({
       ...prev,
@@ -50,14 +69,28 @@ const Expenses = () => {
     }
 
     try {
-      const response = await api.post("/expenses", formData, getAuthHeaders());
-      setExpensesList((prev) => [...prev, response.data]);
+      let response;
+      if (editingExpense) {
+        response = await api.put(
+          `/expenses/${editingExpense._id}`,
+          formData,
+          getAuthHeaders()
+        );
+        setExpensesList(prev =>
+          prev.map(item => item._id === editingExpense._id ? response.data : item)
+        );
+        toast.success("Expense updated successfully!");
+      } else {
+        response = await api.post("/expenses", formData, getAuthHeaders());
+        setExpensesList(prev => [...prev, response.data]);
+        toast.success("Expense added successfully!");
+      }
       setFormData({ category: "", amount: "" });
+      setEditingExpense(null);
       setError("");
-      toast.success("Expense added successfully!");
     } catch (err) {
-      setError("Failed to add expense.");
-      toast.error("Error adding expense.");
+      setError("Failed to process request.");
+      toast.error("Error processing request.");
     }
   };
 
@@ -74,7 +107,7 @@ const Expenses = () => {
         <div className="p-6 max-w-6xl mx-auto">
           <header className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between">
             <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-red-600 to-pink-500 bg-clip-text text-transparent">
                 Expense Management
               </h1>
               <p className="text-slate-500 mt-2">Track and manage your expenses</p>
@@ -89,7 +122,6 @@ const Expenses = () => {
           </header>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Summary Card */}
             <div className="bg-white rounded-xl shadow-md overflow-hidden border border-slate-100 transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
               <div className="bg-gradient-to-r from-red-500 to-pink-500 p-4 text-white">
                 <h2 className="text-lg font-semibold">Expense Overview</h2>
@@ -128,13 +160,12 @@ const Expenses = () => {
               </div>
             </div>
 
-            {/* Form Card */}
             <div className="lg:col-span-2 bg-white rounded-xl shadow-md p-6 border border-slate-100 transform transition-all duration-300 hover:shadow-lg">
               <h2 className="text-lg font-semibold text-slate-700 mb-4 flex items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-red-500" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
                 </svg>
-                Add New Expense
+                {editingExpense ? "Edit Expense" : "Add New Expense"}
               </h2>
               
               {error && (
@@ -185,19 +216,30 @@ const Expenses = () => {
                   </div>
                 </div>
 
-                <div className="flex justify-end pt-2">
+                <div className="flex justify-end pt-2 gap-2">
+                  {editingExpense && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData({ category: "", amount: "" });
+                        setEditingExpense(null);
+                      }}
+                      className="bg-slate-100 text-slate-600 px-6 py-2 rounded-lg hover:bg-slate-200 transition-all shadow-md"
+                    >
+                      Cancel
+                    </button>
+                  )}
                   <button
                     type="submit"
                     className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-6 py-2 rounded-lg hover:from-red-600 hover:to-pink-600 transition-all focus:ring-2 focus:ring-red-500 focus:ring-offset-2 shadow-md hover:shadow-lg"
                   >
-                    Add Expense
+                    {editingExpense ? "Update Expense" : "Add Expense"}
                   </button>
                 </div>
               </form>
             </div>
           </div>
 
-          {/* Expense Records Table */}
           <div className="mt-8 bg-white rounded-xl shadow-md p-6 border border-slate-100 transition-all duration-300 hover:shadow-lg">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-lg font-semibold text-slate-700 flex items-center">
@@ -252,6 +294,9 @@ const Expenses = () => {
                       <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">
                         Amount
                       </th>
+                      <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">
+                        Actions
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-slate-200">
@@ -264,12 +309,38 @@ const Expenses = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-slate-500">{new Date(item.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</div>
+                          <div className="text-sm text-slate-500">
+                            {new Date(item.date).toLocaleDateString('en-US', { 
+                              year: 'numeric', 
+                              month: 'short', 
+                              day: 'numeric' 
+                            })}
+                          </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right">
                           <div className="text-red-600 font-semibold px-4 py-1 bg-red-50 rounded-full inline-block">
                             Rs. {Number(item.amount).toLocaleString()}
                           </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right space-x-2">
+                          <button
+                            onClick={() => handleEdit(item)}
+                            className="text-red-600 hover:text-red-800 transition-colors"
+                            aria-label="Edit"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                              <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => handleDelete(item._id)}
+                            className="text-red-600 hover:text-red-800 transition-colors"
+                            aria-label="Delete"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                          </button>
                         </td>
                       </tr>
                     ))}

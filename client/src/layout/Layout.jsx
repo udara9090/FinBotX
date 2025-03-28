@@ -16,6 +16,7 @@ const Layout = () => {
       <Sidebar isSidebarOpen={isSidebarOpen} />
 
       {/* Main content area to the right of (or under) the sidebar */}
+      <Navbar toggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
       <div
         className={`
           flex flex-col
@@ -27,7 +28,7 @@ const Layout = () => {
         `}
       >
         {/* Top navbar */}
-        <Navbar toggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
+        
 
         {/* Outlet to render child pages (e.g., Dashboard, etc.) */}
         <main className="p-4 bg-gray-100 min-h-screen">
